@@ -14,8 +14,7 @@ export default function RootLayout() {
         name="dashboard" 
         options={{ 
           title: 'Dashboard',
-          headerShown: true,
-          headerBackTitle: 'Voltar'
+          headerShown: false,
         }} 
       />
     </Stack>

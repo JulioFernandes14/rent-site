@@ -4,75 +4,42 @@ import { router } from 'expo-router';
 export default function Dashboard() {
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Dashboard</Text>
-          <Text style={styles.cardSubTitle}>Bem-vindo ao Gerenciador de Aluguel</Text>
-        </View>
-
-        <View style={styles.content}>
-          <Text style={styles.welcomeText}>
-            Você está logado no sistema!
-          </Text>
-          
-          <TouchableOpacity 
-            style={styles.button} 
-            onPress={() => router.push('/')}
-          >
-            <Text style={styles.buttonText}>Voltar ao Login</Text>
-          </TouchableOpacity>
-        </View>
+      <View>
+        <Text style={styles.title}>Dashboard</Text>
+        <Text style={styles.subtitle}>Gerencie seus aluguéis</Text>
       </View>
+
+      <TouchableOpacity style={styles.registerRent} onPress={() => router.push('/dashboard')}>
+        <Text style={styles.registerRentText}>Cadastrar Aluguel</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: '100%',
+    padding: 20
   },
-  card: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 20,
-    borderRadius: 10,
-    width: '90%',
-    maxWidth: 400,
-  },
-  cardHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  cardTitle: {
-    fontSize: 24,
+  title: {
+    fontSize: 30,
     fontWeight: 'bold',
-    marginBottom: 5,
   },
-  cardSubTitle: {
+  subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#aaa'
   },
-  content: {
-    alignItems: 'center',
-  },
-  welcomeText: {
-    fontSize: 18,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  button: {
-    backgroundColor: '#007bff',
-    padding: 15,
+  registerRent: {
+    marginTop: 20,
+    backgroundColor: '#7e72ee',
+    padding: 10,
     borderRadius: 5,
-    width: '100%',
     alignItems: 'center',
+    justifyContent: 'center'
   },
-  buttonText: {
-    color: 'white',
+  registerRentText: {
+    color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
-  },
+  }
 });

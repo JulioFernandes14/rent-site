@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 export default function Login() {
 
-  const [token, setToken] = useState<boolean | null>(false);
+  const [token, setToken] = useState<boolean | null>(true);
 
   useEffect(() => {
     if (token) {
@@ -25,6 +25,7 @@ export default function Login() {
             <Text>Usuário</Text>
             <TextInput
               placeholder="username"
+              placeholderTextColor={'#aabbcc'}
               style={styles.input}
             />
           </View>
@@ -33,6 +34,7 @@ export default function Login() {
             <Text>Senha</Text>
             <TextInput
               placeholder="senha"
+              placeholderTextColor={'#aabbcc'}
               style={styles.input}
               secureTextEntry
             />
