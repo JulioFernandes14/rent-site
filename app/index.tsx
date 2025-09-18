@@ -8,9 +8,13 @@ export default function Login() {
 
   useEffect(() => {
     if (token) {
-      router.push('/dashboard')
+      const timer = setTimeout(() => {
+        router.replace('/dashboard');
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [token])
+  }, [token]);
+
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
