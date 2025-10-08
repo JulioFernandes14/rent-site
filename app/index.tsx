@@ -1,54 +1,101 @@
-import { StyleSheet, Text, TextInput, View, Keyboard, TouchableWithoutFeedback, Button, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Keyboard, TouchableWithoutFeedback, Button, TouchableOpacity, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { login } from './_http/auth_http/routes/auth';
+import { useAuthStore } from './auth/auth';
+import { LoginResponse } from './_http/auth_http/interface';
 
 export default function Login() {
 
-  const [token, setToken] = useState<boolean | null>(true);
+  const auth = useAuthStore();
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (token) {
+    if (auth.user?.access_token) {
       const timer = setTimeout(() => {
         router.replace('/dashboard');
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [token]);
+  }, [auth]);
 
+  const handleSubmit = async () => {
+    setUsernameError(null);
+    setPasswordError(null);
+    if (username.trim() === '') {
+      setUsernameError('Campo usuário é obrigatório')
+      return
+    }
 
-  return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Gerenciador de Aluguel</Text>
-            <Text style={styles.cardSubTitle}>Faça login para acessar o sistema</Text>
-          </View>
+    if (password.trim() === '') {
+      setPasswordError('Campo senha é obrigatório')
+      return
+    }
 
-          <View style={styles.field}>
-            <Text>Usuário</Text>
-            <TextInput
-              placeholder="username"
-              placeholderTextColor={'#aabbcc'}
-              style={styles.input}
-            />
-          </View>
+    const loginRes = await login(username, password);
+    const data = await loginRes.json<LoginResponse>()
 
-          <View style={styles.field}>
-            <Text>Senha</Text>
-            <TextInput
-              placeholder="senha"
-              placeholderTextColor={'#aabbcc'}
-              style={styles.input}
-              secureTextEntry
-            />
-          </View>
+    if(loginRes.ok){
+      auth.login({
+        user: {
+          access_token: data.access_token,
+          email: data.email,
+          username: data.username,
+          id: data.id
+        }
+      })
+      router.replace('/dashboard')
+    }else{
+      setPasswordError(loginRes.statusText)
+    }
+  }
 
-          <TouchableOpacity style={styles.submit} onPress={() => router.push('/dashboard')}>
-            <Text style={styles.submitText}>Entrar</Text>
-          </TouchableOpacity>
+  const content = (
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>Gerenciador de Aluguel</Text>
+          <Text style={styles.cardSubTitle}>Faça login para acessar o sistema</Text>
         </View>
+
+        <View style={styles.field}>
+          <Text>Usuário</Text>
+          <TextInput
+            placeholder="username"
+            placeholderTextColor={'#aabbcc'}
+            style={styles.input}
+            value={username}
+            onChangeText={setUsername}
+          />
+          {usernameError && <Text style={styles.error}>{usernameError}</Text>}
+        </View>
+
+        <View style={styles.field}>
+          <Text>Senha</Text>
+          <TextInput
+            placeholder="senha"
+            placeholderTextColor={'#aabbcc'}
+            style={styles.input}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+          {passwordError && <Text style={styles.error}>{passwordError}</Text>}
+        </View>
+
+        <TouchableOpacity style={styles.submit} onPress={handleSubmit}>
+          <Text style={styles.submitText}>Entrar</Text>
+        </TouchableOpacity>
       </View>
+    </View>
+  );
+
+  return Platform.OS === 'web' ? content : (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      {content}
     </TouchableWithoutFeedback>
   );
 }
@@ -101,5 +148,8 @@ const styles = StyleSheet.create({
   submitText: {
     color: '#fff',
     fontSize: 14,
+  },
+  error: {
+    color:'red'
   }
 });

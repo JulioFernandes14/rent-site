@@ -1,13 +1,33 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useEffect } from 'react';
+import { useAuthStore } from './auth/auth';
 
 export default function Dashboard() {
+
+  const auth = useAuthStore();
+
+  useEffect(() => {
+    if (!auth.user?.access_token) {
+      const timer = setTimeout(() => {
+        router.replace('/');
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [auth]);
+
   return (
     <View style={styles.container}>
-      <View style={{marginBottom: 20}}>
-        <Text style={styles.title}>Dashboard</Text>
-        <Text style={styles.subtitle}>Gerencie seus aluguéis</Text>
+      <View style={{ marginBottom: 20, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View>
+          <Text style={styles.title}>Dashboard</Text>
+          <Text style={styles.subtitle}>Gerencie seus aluguéis</Text>
+        </View>
+
+        <TouchableOpacity onPress={() => auth.logout()}>
+          <MaterialIcons name="logout" size={35} color="#7e72ee" />
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.registerRent} onPress={() => router.push('/dashboard')}>
@@ -57,7 +77,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     height: '100%',
-    padding: 20
+    padding: 20,
+    paddingTop: 70,
   },
   title: {
     fontSize: 30,
