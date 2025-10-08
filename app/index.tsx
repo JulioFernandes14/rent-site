@@ -8,6 +8,7 @@ import { LoginResponse } from './_http/auth_http/interface';
 export default function Login() {
 
   const auth = useAuthStore();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [usernameError, setUsernameError] = useState<string | null>(null);
@@ -35,22 +36,28 @@ export default function Login() {
       return
     }
 
-    const loginRes = await login(username, password);
-    const data = await loginRes.json<LoginResponse>()
+    try {
+      setIsLoading(true)
+      const data = await login(username, password);
 
-    if(loginRes.ok){
       auth.login({
         user: {
           access_token: data.access_token,
           email: data.email,
           username: data.username,
-          id: data.id
-        }
-      })
-      router.replace('/dashboard')
-    }else{
-      setPasswordError(loginRes.statusText)
+          id: data.id,
+        },
+      });
+
+      router.replace('/dashboard');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setPasswordError(err.message);
+      } else {
+        setPasswordError("Erro inesperado");
+      }
     }
+    setIsLoading(false);
   }
 
   const content = (
@@ -86,8 +93,12 @@ export default function Login() {
           {passwordError && <Text style={styles.error}>{passwordError}</Text>}
         </View>
 
-        <TouchableOpacity style={styles.submit} onPress={handleSubmit}>
+        <TouchableOpacity style={styles.submit} onPress={handleSubmit} disabled={isLoading}>
           <Text style={styles.submitText}>Entrar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.replace('/register')}>
+          <Text style={{ color: '#7e72ee', textAlign: 'center', marginTop: 20 }}>Cadastrar-se</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -150,6 +161,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   error: {
-    color:'red'
+    color: 'red'
   }
 });

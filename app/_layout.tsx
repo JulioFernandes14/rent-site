@@ -11,6 +11,13 @@ export default function RootLayout() {
         }} 
       />
       <Stack.Screen 
+        name="register" 
+        options={{ 
+          title: 'Registrar-se',
+          headerShown: false 
+        }} 
+      />
+      <Stack.Screen 
         name="dashboard" 
         options={{ 
           title: 'Dashboard',

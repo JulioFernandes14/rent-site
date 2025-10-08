@@ -1,18 +1,19 @@
 import { api } from "../../client";
-import { LoginResponse } from "../interface";
+import { RegisterResponse } from "../interface";
 import { HTTPError } from "ky";
 import CryptoJS from 'crypto-js';
 
-export async function login(
+export async function register(
   username: string,
+  email: string,
   password: string
-): Promise<LoginResponse> {
+): Promise<RegisterResponse> {
   try {
     const hasedPassword = CryptoJS.SHA256(password).toString()
-    return await api.post('auth/login', {
-      json: { username, password: hasedPassword },
+    return await api.post('users', {
+      json: { username, email, password: hasedPassword },
       headers: { "Content-Type": "application/json" },
-    }).json<LoginResponse>();
+    }).json<RegisterResponse>();
   } catch (err: unknown) {
     if (err instanceof HTTPError) {
       const body = await err.response.json();
