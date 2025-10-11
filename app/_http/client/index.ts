@@ -3,14 +3,16 @@ import { router } from 'expo-router'
 import { useAuthStore } from '../../auth/auth'
 
 export const api = ky.create({
-  prefixUrl: 'http://192.168.0.11:3000',
+  prefixUrl: 'http://192.168.1.22:3000',
   timeout: false,
   hooks: {
     beforeRequest: [
-      (request) => {
+      async (request) => {
         if (request.url.includes('/auth/login')) {
           return
         }
+
+        await new Promise((resolve) => setTimeout(resolve, 2000))
 
         const { user } = useAuthStore.getState()
 
