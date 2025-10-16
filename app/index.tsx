@@ -2,8 +2,7 @@ import { StyleSheet, Text, TextInput, View, Keyboard, TouchableWithoutFeedback, 
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { login } from './_http/auth_http/routes/auth';
-import { useAuthStore } from './auth/auth';
-import { LoginResponse } from './_http/auth_http/interface';
+import { useAuthStore } from './store/auth/auth';
 
 export default function Login() {
 

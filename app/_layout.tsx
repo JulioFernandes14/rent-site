@@ -24,6 +24,13 @@ export default function RootLayout() {
           headerShown: false,
         }} 
       />
+      <Stack.Screen 
+        name="create-rent" 
+        options={{ 
+          title: 'Create Rent',
+          headerShown: false,
+        }} 
+      />
     </Stack>
   );
 }

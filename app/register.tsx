@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TextInput, View, Keyboard, TouchableWithoutFeedback, TouchableOpacity, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { useAuthStore } from './auth/auth';
+import { useAuthStore } from './store/auth/auth';
 import { register } from './_http/auth_http/routes/register';
 import * as Notifications from 'expo-notifications';
 

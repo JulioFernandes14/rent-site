@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, ScrollView
 import { router } from 'expo-router';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useEffect, useState } from 'react';
-import { useAuthStore } from './auth/auth';
+import { useAuthStore } from './store/auth/auth';
 import { Rent, TotalRentsResponse, TotalRentsValueResponse } from './_http/rent/interfaces';
 import { getTotalRents } from './_http/rent/routes/total-rents';
 import { getTotalRentsValue } from './_http/rent/routes/total-rents-value';
@@ -126,7 +126,7 @@ export default function Dashboard() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.registerRent} onPress={() => router.push('/dashboard')}>
+      <TouchableOpacity style={styles.registerRent} onPress={() => router.push('/create-rent')}>
         <MaterialIcons name="add" size={25} color="#fff" />
         <Text style={styles.registerRentText}>Cadastrar Aluguel</Text>
       </TouchableOpacity>
@@ -169,7 +169,7 @@ export default function Dashboard() {
               <View style={styles.noRents}>
                 <MaterialIcons name="inventory" size={40} color="#aaa" />
                 <Text style={{ color: '#8f8f8f' }}>Nenhum aluguel cadastrado ainda.</Text>
-                <TouchableOpacity style={styles.registerRent} onPress={() => router.push('/dashboard')}>
+                <TouchableOpacity style={styles.registerRent} onPress={() => router.push('/create-rent')}>
                   <MaterialIcons name="add" size={15} color="#fff" />
                   <Text style={styles.registerFirstRentText}>Cadastrar Primeiro Aluguel</Text>
                 </TouchableOpacity>
