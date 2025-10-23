@@ -15,9 +15,9 @@ Notifications.setNotificationHandler({
   }),
 });
 
-async function enviarNotificacao() {
+export async function enviarNotificacao(title: string, message: string) {
   if (Platform.OS === 'web') {
-    alert('Cadastro realizado! Use seu usuário e senha para acessar o dashboard');
+    alert(message);
     return;
   }
 
@@ -31,8 +31,8 @@ async function enviarNotificacao() {
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: "Cadastro realizado! ✅",
-        body: 'Use seu usuário e senha para acessar o dashboard',
+        title: title,
+        body: message,
       },
       trigger: null,
     });
@@ -98,7 +98,7 @@ export default function Login() {
       setIsLoading(true);
       await register(username, email, password);
       
-      await enviarNotificacao();
+      await enviarNotificacao('Cadastro realizado! ✅', 'Use seu usuário e senha para acessar o dashboard');
       
       router.replace('/');
     } catch (err: unknown) {

@@ -1,9 +1,11 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from './store/auth/auth';
 import { formatCurrency } from './dashboard';
+import { RentItemRequest } from './_http/rent/interfaces';
+import { createRent } from './_http/rent/routes/create-rent';
 
 const generateId = () => `${Date.now()}-${Math.random()}`;
 interface RentInputItem {
@@ -20,6 +22,8 @@ export default function CreateRent() {
 
     const auth = useAuthStore();
     const [rentItems, setRentItems] = useState<RentInputItem[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [submit, setSubmit] = useState(false);
 
     useEffect(() => {
         setRentItems(prev => [
@@ -97,6 +101,75 @@ export default function CreateRent() {
         setRentItems(test)
     }
 
+    const handleSaveRent = async () => {
+        const verifiedRentItems = rentItems.map(item => {
+            let verifiedItem: RentInputItem = {
+                ...item,
+                quantityError: undefined,
+                valueError: undefined,
+                nameError: undefined,
+            };
+
+            if (!item.quantity) {
+                verifiedItem = {
+                    ...item,
+                    quantityError: 'Campo quantidade é obrigatório'
+                }
+            }
+
+            if (!item.value || !Number(item.value.replace(/\./g, '').replace(',', '.'))) {
+                verifiedItem = {
+                    ...item,
+                    valueError: 'Campo valor unitário é obrigatório'
+                }
+            }
+
+            if (!item.name?.trim()) {
+                verifiedItem = {
+                    ...item,
+                    nameError: 'Campo nome é obrigatório'
+                }
+            }
+
+            return verifiedItem
+        })
+
+        setRentItems(verifiedRentItems)
+        setSubmit(true)
+    }
+
+    const createRentFunc = async (items: RentInputItem[]) => {
+        setIsLoading(true)
+        const formattedRequest = items.map(item => {
+            const formattedItem: RentItemRequest = {
+                name: item.name ?? '',
+                quantity: item.quantity ?? 0,
+                value: item.value ? (Number(item.value.replace(/\./g, '').replace(',', '.')) * 1000) : 0,
+            }
+
+            return formattedItem
+        })
+        await createRent(formattedRequest)
+        setIsLoading(false)
+        setRentItems([
+            {
+                id: generateId(),
+                name: undefined,
+                nameError: undefined,
+                quantity: undefined,
+                quantityError: undefined,
+                value: undefined,
+                valueError: undefined
+            }
+        ])
+    }
+
+    useEffect(() => {
+        if (submit) {
+            createRentFunc(rentItems)
+        }
+    }, [submit])
+
 
     return (
         <ScrollView style={styles.container}>
@@ -136,7 +209,7 @@ export default function CreateRent() {
                                         value={rent.name}
                                         onChangeText={(e) => handleChangeName(index, e)}
                                     />
-                                    {/* {passwordError && <Text style={styles.error}>{passwordError}</Text>} */}
+                                    {rent.nameError && <Text style={styles.error}>{rent.nameError}</Text>}
                                 </View>
 
                                 <View style={styles.field}>
@@ -149,7 +222,7 @@ export default function CreateRent() {
                                         value={String(rent.quantity ?? '')}
                                         onChangeText={(e) => handleChangeQuantity(index, e)}
                                     />
-                                    {/* {passwordError && <Text style={styles.error}>{passwordError}</Text>} */}
+                                    {rent.quantityError && <Text style={styles.error}>{rent.quantityError}</Text>}
                                 </View>
 
                                 <View style={styles.field}>
@@ -162,7 +235,7 @@ export default function CreateRent() {
                                         value={String(rent.value ?? '')}
                                         onChangeText={(e) => handleChangeValue(index, e)}
                                     />
-                                    {/* {passwordError && <Text style={styles.error}>{passwordError}</Text>} */}
+                                    {rent.valueError && <Text style={styles.error}>{rent.valueError}</Text>}
                                 </View>
                             </View>
                         ))
@@ -207,10 +280,14 @@ export default function CreateRent() {
                     flex: 1,
                     padding: 10,
                 }}>
-                    <Text style={{textAlign: 'center'}}>Cancelar</Text>
+                    <Text style={{ textAlign: 'center' }}>Cancelar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ backgroundColor: '#7e72ee', flex: 1, borderRadius: 5, padding: 10 }}>
-                    <Text style={{ textAlign: 'center', color: '#fff' }}>Salvar Aluguel</Text>
+                <TouchableOpacity style={{ backgroundColor: `${isLoading ? '#a8a1ecff' : '#7e72ee'}`, flex: 1, borderRadius: 5, padding: 10 }} onPress={handleSaveRent} disabled={isLoading}>
+                    {isLoading
+                        ? <ActivityIndicator size={'small'} color={'#fff'} />
+                        : <Text style={{ textAlign: 'center', color: '#fff' }}>Salvar Aluguel</Text>
+
+                    }
                 </TouchableOpacity>
             </View>
         </ScrollView>
@@ -223,6 +300,9 @@ const styles = StyleSheet.create({
         height: '100%',
         padding: 20,
         paddingTop: 70,
+    },
+    error: {
+        color: 'red'
     },
     title: {
         fontSize: 30,
