@@ -135,7 +135,7 @@ export default function CreateRent() {
         })
 
         setRentItems(verifiedRentItems)
-        setSubmit(true)
+        setSubmit(verifiedRentItems.filter((item) => item?.nameError || item?.quantityError || item?.valueError).length === 0)
     }
 
     const createRentFunc = async (items: RentInputItem[]) => {

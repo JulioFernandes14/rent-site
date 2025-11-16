@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, ScrollView, TextInput } from 'react-native';
 import { router } from 'expo-router';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useEffect, useState } from 'react';
@@ -50,10 +50,31 @@ export default function Dashboard() {
   const [rents, setRents] = useState<Rent[] | string | undefined>(undefined);
   const [rentsLoading, setRentsLoading] = useState<boolean>(false);
 
+  const [filterDays, setFilterDays] = useState<number>(10);
+  const [filterDaysText, setFilterDaysText] = useState<string>('10');
+
+  const formatDateOnly = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const dateRange = (days: number): { startDate: string; endDate: string } => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - days);
+    return {
+      startDate: formatDateOnly(start),
+      endDate: formatDateOnly(end),
+    };
+  };
+
   const getTotalRentsFunc = async () => {
     try {
       setTotalRentsLoading(true);
-      const total = await getTotalRents();
+      const params = dateRange(filterDays);
+      const total = await getTotalRents(params);
       setTotalRents(total);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -69,7 +90,8 @@ export default function Dashboard() {
   const getTotalRentsValueFunc = async () => {
     try {
       setTotalRentsValueLoading(true);
-      const total = await getTotalRentsValue();
+      const params = dateRange(filterDays);
+      const total = await getTotalRentsValue(params);
       setTotalRentsValue(total);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -85,7 +107,8 @@ export default function Dashboard() {
   const getRentsFunc = async () => {
     try {
       setRentsLoading(true);
-      const total = await getRents();
+      const params = dateRange(filterDays);
+      const total = await getRents(params);
       setRents(total);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -96,6 +119,19 @@ export default function Dashboard() {
     } finally {
       setRentsLoading(false);
     }
+  }
+
+  const filter = async () => {
+    const text = filterDaysText.trim();
+    const numeric = text === '' ? filterDays : Number(text);
+    const daysToUse = numeric <= 0 ? 1 : numeric;
+ 
+    setFilterDays(daysToUse);
+    await Promise.all([
+      getTotalRentsFunc(),
+      getTotalRentsValueFunc(),
+      getRentsFunc(),
+    ]);
   }
 
   useEffect(() => {
@@ -130,6 +166,29 @@ export default function Dashboard() {
         <MaterialIcons name="add" size={25} color="#fff" />
         <Text style={styles.registerRentText}>Cadastrar Aluguel</Text>
       </TouchableOpacity>
+
+      <View style={styles.filterContainer}>
+        <Text style={{ fontSize: 14 }}>Filtrar últimos</Text>
+        <TextInput
+          style={styles.filterInput}
+          keyboardType={'numeric'}
+          value={filterDaysText}
+          onChangeText={(text) => {
+            const onlyNumbers = text.replace(/\D/g, '');
+            setFilterDaysText(onlyNumbers);
+            if (onlyNumbers !== '') {
+              const numeric = Number(onlyNumbers);
+              setFilterDays(numeric <= 0 ? 1 : numeric);
+            }
+          }}
+          placeholder="10"
+          placeholderTextColor={'#aabbcc'}
+        />
+        <Text style={{ fontSize: 14 }}>dias</Text>
+        <TouchableOpacity style={styles.applyFilterButton} onPress={filter}>
+          <Text style={styles.applyFilterButtonText}>Filtrar</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.dataContainer}>
         <View style={styles.dataCard}>
@@ -224,6 +283,32 @@ const styles = StyleSheet.create({
     height: '100%',
     padding: 20,
     paddingTop: 70,
+  },
+  filterContainer: {
+    marginTop: 15,
+    marginBottom: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  filterInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
+    height: 32,
+    minWidth: 70,
+  },
+  applyFilterButton: {
+    backgroundColor: '#7e72ee',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 5,
+  },
+  applyFilterButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 30,
