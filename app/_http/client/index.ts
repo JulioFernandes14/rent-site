@@ -3,7 +3,7 @@ import { router } from 'expo-router'
 import { useAuthStore } from '../../store/auth/auth'
 
 export const api = ky.create({
-  prefixUrl: 'http://localhost:3000',
+  prefixUrl: 'http://192.168.0.11:3000',
   timeout: false,
   hooks: {
     beforeRequest: [

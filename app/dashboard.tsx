@@ -252,7 +252,7 @@ export default function Dashboard() {
                       <View>
                         <Text style={{fontSize: 14, color:'#838383ff', fontWeight: 'bold', marginBottom: 5}}>Produtos:</Text>
                         {rent.items?.map((item) => (
-                          <View key={item.id} style={{flexDirection: 'row', gap: 5, backgroundColor: '#eee', borderRadius: 5, padding: 10, justifyContent: 'space-between'}}>
+                          <View key={item.id} style={{flexDirection: 'row', gap: 5, backgroundColor: '#eee', borderRadius: 5, padding: 10, justifyContent: 'space-between', marginBottom: 5}}>
                             <View>
                               <Text style={{fontWeight: 'bold'}}>{item.name}</Text>
                               <Text style={{fontWeight: 'bold', color: '#b3b0b0ff'}}>x{item.quantity}</Text>
