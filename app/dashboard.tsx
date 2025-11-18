@@ -50,8 +50,10 @@ export default function Dashboard() {
   const [rents, setRents] = useState<Rent[] | string | undefined>(undefined);
   const [rentsLoading, setRentsLoading] = useState<boolean>(false);
 
-  const [filterDays, setFilterDays] = useState<number>(10);
-  const [filterDaysText, setFilterDaysText] = useState<string>('10');
+  const [startDateText, setStartDateText] = useState<string>('');
+  const [endDateText, setEndDateText] = useState<string>('');
+  const [startDateError, setStartDateError] = useState<string | null>(null);
+  const [endDateError, setEndDateError] = useState<string | null>(null);
 
   const formatDateOnly = (date: Date): string => {
     const year = date.getFullYear();
@@ -60,20 +62,44 @@ export default function Dashboard() {
     return `${year}-${month}-${day}`;
   };
 
-  const dateRange = (days: number): { startDate: string; endDate: string } => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - days);
-    return {
-      startDate: formatDateOnly(start),
-      endDate: formatDateOnly(end),
-    };
+  const DATE_REGEX = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+
+  const isValidDateBR = (text: string): boolean => {
+    if (!DATE_REGEX.test(text)) return false;
+    const [dayStr, monthStr, yearStr] = text.split('/');
+    const day = Number(dayStr);
+    const month = Number(monthStr);
+    const year = Number(yearStr);
+    const d = new Date(year, month - 1, day);
+    return (
+      d.getFullYear() === year &&
+      d.getMonth() === month - 1 &&
+      d.getDate() === day
+    );
   };
 
-  const getTotalRentsFunc = async () => {
+  const toISOFromBR = (text: string): string => {
+    const [dayStr, monthStr, yearStr] = text.split('/');
+    const day = Number(dayStr);
+    const month = Number(monthStr);
+    const year = Number(yearStr);
+    const d = new Date(year, month - 1, day);
+    return formatDateOnly(d);
+  };
+
+  const formatDateInput = (text: string): string => {
+    const digits = text.replace(/\D/g, '').slice(0, 8);
+    const day = digits.slice(0, 2);
+    const month = digits.slice(2, 4);
+    const year = digits.slice(4, 8);
+    if (digits.length <= 2) return day;
+    if (digits.length <= 4) return `${day}/${month}`;
+    return `${day}/${month}/${year}`;
+  };
+
+  const getTotalRentsFunc = async (params?: { startDate: string; endDate: string }) => {
     try {
       setTotalRentsLoading(true);
-      const params = dateRange(filterDays);
       const total = await getTotalRents(params);
       setTotalRents(total);
     } catch (err: unknown) {
@@ -87,10 +113,9 @@ export default function Dashboard() {
     }
   }
 
-  const getTotalRentsValueFunc = async () => {
+  const getTotalRentsValueFunc = async (params?: { startDate: string; endDate: string }) => {
     try {
       setTotalRentsValueLoading(true);
-      const params = dateRange(filterDays);
       const total = await getTotalRentsValue(params);
       setTotalRentsValue(total);
     } catch (err: unknown) {
@@ -104,10 +129,9 @@ export default function Dashboard() {
     }
   }
 
-  const getRentsFunc = async () => {
+  const getRentsFunc = async (params?: { startDate: string; endDate: string }) => {
     try {
       setRentsLoading(true);
-      const params = dateRange(filterDays);
       const total = await getRents(params);
       setRents(total);
     } catch (err: unknown) {
@@ -122,15 +146,40 @@ export default function Dashboard() {
   }
 
   const filter = async () => {
-    const text = filterDaysText.trim();
-    const numeric = text === '' ? filterDays : Number(text);
-    const daysToUse = numeric <= 0 ? 1 : numeric;
- 
-    setFilterDays(daysToUse);
+    setStartDateError(null);
+    setEndDateError(null);
+
+    const startText = startDateText.trim();
+    const endText = endDateText.trim();
+
+    if (startText === '' && endText === '') {
+      await Promise.all([
+        getTotalRentsFunc(),
+        getTotalRentsValueFunc(),
+        getRentsFunc(),
+      ]);
+      return;
+    }
+
+    let hasError = false;
+    if (!isValidDateBR(startText)) {
+      setStartDateError('Data inválida. Use DD/MM/AAAA');
+      hasError = true;
+    }
+    if (!isValidDateBR(endText)) {
+      setEndDateError('Data inválida. Use DD/MM/AAAA');
+      hasError = true;
+    }
+    if (hasError) return;
+
+    const startISO = toISOFromBR(startText);
+    const endISO = toISOFromBR(endText);
+
+    const params = { startDate: startISO, endDate: endISO };
     await Promise.all([
-      getTotalRentsFunc(),
-      getTotalRentsValueFunc(),
-      getRentsFunc(),
+      getTotalRentsFunc(params),
+      getTotalRentsValueFunc(params),
+      getRentsFunc(params),
     ]);
   }
 
@@ -168,23 +217,32 @@ export default function Dashboard() {
       </TouchableOpacity>
 
       <View style={styles.filterContainer}>
-        <Text style={{ fontSize: 14 }}>Filtrar últimos</Text>
-        <TextInput
-          style={styles.filterInput}
-          keyboardType={'numeric'}
-          value={filterDaysText}
-          onChangeText={(text) => {
-            const onlyNumbers = text.replace(/\D/g, '');
-            setFilterDaysText(onlyNumbers);
-            if (onlyNumbers !== '') {
-              const numeric = Number(onlyNumbers);
-              setFilterDays(numeric <= 0 ? 1 : numeric);
-            }
-          }}
-          placeholder="10"
-          placeholderTextColor={'#aabbcc'}
-        />
-        <Text style={{ fontSize: 14 }}>dias</Text>
+        <Text style={{ fontSize: 14, marginRight: 4 }}>Período:</Text>
+        <View style={{ gap: 4 }}>
+          <TextInput
+            style={styles.filterInput}
+            keyboardType={'numeric'}
+            maxLength={10}
+            value={startDateText}
+            onChangeText={(text) => setStartDateText(formatDateInput(text))}
+            placeholder="DD/MM/AAAA"
+            placeholderTextColor={'#aabbcc'}
+          />
+          {startDateError && <Text style={styles.errorText}>{startDateError}</Text>}
+        </View>
+        <Text style={{ fontSize: 14 }}>/</Text>
+        <View style={{ gap: 4 }}>
+          <TextInput
+            style={styles.filterInput}
+            keyboardType={'numeric'}
+            maxLength={10}
+            value={endDateText}
+            onChangeText={(text) => setEndDateText(formatDateInput(text))}
+            placeholder="DD/MM/AAAA"
+            placeholderTextColor={'#aabbcc'}
+          />
+          {endDateError && <Text style={styles.errorText}>{endDateError}</Text>}
+        </View>
         <TouchableOpacity style={styles.applyFilterButton} onPress={filter}>
           <Text style={styles.applyFilterButtonText}>Filtrar</Text>
         </TouchableOpacity>
@@ -298,7 +356,11 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 10,
     height: 32,
-    minWidth: 70,
+    minWidth: 110,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
   },
   applyFilterButton: {
     backgroundColor: '#7e72ee',
