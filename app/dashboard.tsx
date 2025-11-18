@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, ScrollView, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, ScrollView, TextInput, Platform } from 'react-native';
 import { router } from 'expo-router';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useEffect, useState } from 'react';
@@ -216,32 +216,37 @@ export default function Dashboard() {
         <Text style={styles.registerRentText}>Cadastrar Aluguel</Text>
       </TouchableOpacity>
 
-      <View style={styles.filterContainer}>
-        <Text style={{ fontSize: 14, marginRight: 4 }}>Período:</Text>
-        <View style={{ gap: 4 }}>
-          <TextInput
-            style={styles.filterInput}
-            keyboardType={'numeric'}
-            maxLength={10}
-            value={startDateText}
-            onChangeText={(text) => setStartDateText(formatDateInput(text))}
-            placeholder="DD/MM/AAAA"
-            placeholderTextColor={'#aabbcc'}
-          />
-          {startDateError && <Text style={styles.errorText}>{startDateError}</Text>}
-        </View>
-        <Text style={{ fontSize: 14 }}>/</Text>
-        <View style={{ gap: 4 }}>
-          <TextInput
-            style={styles.filterInput}
-            keyboardType={'numeric'}
-            maxLength={10}
-            value={endDateText}
-            onChangeText={(text) => setEndDateText(formatDateInput(text))}
-            placeholder="DD/MM/AAAA"
-            placeholderTextColor={'#aabbcc'}
-          />
-          {endDateError && <Text style={styles.errorText}>{endDateError}</Text>}
+      <View style={[
+        styles.filterContainer,
+        Platform.OS !== 'web' ? styles.filterContainerColumn : styles.filterContainerRow
+      ]}>
+        <View style={styles.filterRow}>
+          <Text style={{ fontSize: 14, marginRight: 4 }}>Período:</Text>
+          <View style={{ gap: 4 }}>
+            <TextInput
+              style={styles.filterInput}
+              keyboardType={'numeric'}
+              maxLength={10}
+              value={startDateText}
+              onChangeText={(text) => setStartDateText(formatDateInput(text))}
+              placeholder="DD/MM/AAAA"
+              placeholderTextColor={'#aabbcc'}
+            />
+            {startDateError && <Text style={styles.errorText}>{startDateError}</Text>}
+          </View>
+          <Text style={{ fontSize: 14 }}>/</Text>
+          <View style={{ gap: 4 }}>
+            <TextInput
+              style={styles.filterInput}
+              keyboardType={'numeric'}
+              maxLength={10}
+              value={endDateText}
+              onChangeText={(text) => setEndDateText(formatDateInput(text))}
+              placeholder="DD/MM/AAAA"
+              placeholderTextColor={'#aabbcc'}
+            />
+            {endDateError && <Text style={styles.errorText}>{endDateError}</Text>}
+          </View>
         </View>
         <TouchableOpacity style={styles.applyFilterButton} onPress={filter}>
           <Text style={styles.applyFilterButtonText}>Filtrar</Text>
@@ -345,9 +350,22 @@ const styles = StyleSheet.create({
   filterContainer: {
     marginTop: 15,
     marginBottom: 5,
+  },
+  filterContainerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  filterContainerColumn: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexWrap: 'wrap',
   },
   filterInput: {
     borderWidth: 1,
